@@ -57,6 +57,62 @@ solver <- function(mydata) {
   return(entropy)
 }
 
+solver_first <- function(mydata, results, guesses) {
+  entropies <- c()
+  for (k in 1:4) { # Which guess
+    if (results[k] == "ggggg") {
+      entropies[k] <- 1000000
+      next
+    }
+    entropy <- 0
+    guess_test <- guesses[k]
+    for (i in 1:4) { # Which dataset
+      if (results[i] == "ggggg") {
+        next
+      }
+      for (j in 1:nrow(mydata[[i]])) {
+        answer_test <- mydata[[i]][j,1]
+        data_test <- subset_data(guess_test, get_result(guess_test, answer_test), mydata[[i]])
+        entropy <- entropy + nrow(data_test)
+      }
+    }
+    entropies[k] <- entropy
+  }
+  return(guesses[which.min(entropies)])
+}
+
+solver_second <- function(mydata, results) {
+  entropies <- c()
+  
+  guesses <- unique(c(mydata[[1]][,1],
+                      mydata[[2]][,1],
+                      mydata[[3]][,1],
+                      mydata[[4]][,1]))
+  
+  
+  for (k in 1:length(guesses)) { # Which guess
+    #if (results[k] == "ggggg") {
+      #entropies[k] <- 1000000
+      #next
+    #}
+    entropy <- 0
+    guess_test <- guesses[k]
+    for (i in 1:4) { # Which dataset
+      if (results[i] == "ggggg") {
+        next
+      }
+      for (j in 1:nrow(mydata[[i]])) {
+        answer_test <- mydata[[i]][j,1]
+        data_test <- subset_data(guess_test, get_result(guess_test, answer_test), mydata[[i]])
+        entropy <- entropy + nrow(data_test)
+      }
+    }
+    entropies[k] <- entropy
+  }
+  return(guesses[which.min(entropies)])
+}
+
+
 # These are all the possible answers for wordle
 words <- read.table("possible_words.txt")
 for (i in 1:5) {
@@ -68,7 +124,7 @@ first_guess <- "share"
 result <- c("b", "b", "b", "b")
 words <- list(words, words, words, words)
 directions <- c("Top Left", "Top Right", "Bottom Left", "Bottom Right")
-
+prior <- "share"
 
 while(TRUE) {
   
@@ -100,40 +156,42 @@ while(TRUE) {
     }
   }
   
-  possible_guesses <- c()
-  for (k in 1:4) {
-    if (result[k] == "ggggg" | nrow(words[[k]]) == 1) {
-      next
-    }
-    
-    if (first_guess == "share" & result[k] == "bbbbb") {
-      possible_guesses[k] <- "unlit"
-    } else if (first_guess == "share" & result[k] == "bybbb") {
-      possible_guesses[k] <- "touch"
-    } else if (first_guess == "share" & result[k] == "bbybb") {
-      possible_guesses[k] <- "talon"
-    } else if (first_guess == "share" & result[k] == "bbbyb") {
-      possible_guesses[k] <- "droit"
-    } else if (first_guess == "share" & result[k] == "bbbby") {
-      possible_guesses[k] <- "olden"
-    } else if (first_guess == "share" & result[k] == "gbbbb") {
-      possible_guesses[k] <- "stink"
-    } else if (first_guess == "share" & result[k] == "bbbbg") {
-      possible_guesses[k] <- "guile"
-    } else if (first_guess == "share" & result[k] == "bbbyy") {
-      possible_guesses[k] <- "rider"
-    } else if (first_guess == "share" & result[k] == "bbyyy") {
-      possible_guesses[k] <- "alter"
-    } else if (first_guess == "share" & result[k] == "bbyyb") {
-      possible_guesses[k] <- "carol"
-    } else if (first_guess == "share" & result[k] == "bbyby") {
-      possible_guesses[k] <- "penal"
-    } else if (first_guess == "share" & result[k] == "bbbyg") {
-      possible_guesses[k] <- "trope"
-    } else {
-      entropy <- solver(words[[k]])
-      possible_guesses[k] <- words[[k]][,1][which.min(entropy)]
-      #first_guess <- words[,1][entropy == min(entropy)]
+  if (first_guess == "share") {
+    possible_guesses <- c()
+    for (k in 1:4) {
+      if (result[k] == "ggggg" | nrow(words[[k]]) == 1) {
+        next
+      }
+      
+      if (first_guess == "share" & result[k] == "bbbbb") {
+        possible_guesses[k] <- "unlit"
+      } else if (first_guess == "share" & result[k] == "bybbb") {
+        possible_guesses[k] <- "touch"
+      } else if (first_guess == "share" & result[k] == "bbybb") {
+        possible_guesses[k] <- "talon"
+      } else if (first_guess == "share" & result[k] == "bbbyb") {
+        possible_guesses[k] <- "droit"
+      } else if (first_guess == "share" & result[k] == "bbbby") {
+        possible_guesses[k] <- "olden"
+      } else if (first_guess == "share" & result[k] == "gbbbb") {
+        possible_guesses[k] <- "stink"
+      } else if (first_guess == "share" & result[k] == "bbbbg") {
+        possible_guesses[k] <- "guile"
+      } else if (first_guess == "share" & result[k] == "bbbyy") {
+        possible_guesses[k] <- "rider"
+      } else if (first_guess == "share" & result[k] == "bbyyy") {
+        possible_guesses[k] <- "alter"
+      } else if (first_guess == "share" & result[k] == "bbyyb") {
+        possible_guesses[k] <- "carol"
+      } else if (first_guess == "share" & result[k] == "bbyby") {
+        possible_guesses[k] <- "penal"
+      } else if (first_guess == "share" & result[k] == "bbbyg") {
+        possible_guesses[k] <- "trope"
+      } else {
+        entropy <- solver(words[[k]])
+        possible_guesses[k] <- words[[k]][,1][which.min(entropy)]
+        #first_guess <- words[,1][entropy == min(entropy)]
+      }
     }
   }
 
@@ -149,31 +207,16 @@ while(TRUE) {
   }
   
   if (!is_answer) {
-    entropies <- c()
-    for (k in 1:4) { # Which guess
-      if (result[k] == "ggggg") {
-        entropies[k] <- 1000000
-        next
-      }
-      entropy <- 0
-      guess_test <- possible_guesses[k]
-      for (i in 1:4) { # Which dataset
-        if (result[i] == "ggggg") {
-          next
-        }
-        for (j in 1:nrow(words[[i]])) {
-          answer_test <- words[[i]][j,1]
-          data_test <- subset_data(guess_test, get_result(guess_test, answer_test), words[[i]])
-          entropy <- entropy + nrow(data_test)
-        }
-      }
-      entropies[k] <- entropy
+    if (first_guess == "share") {
+      first_guess <- solver_first(words, result, possible_guesses)
+    } else {
+      first_guess <- solver_second(words, result)
     }
-    first_guess <- possible_guesses[which.min(entropies)]
   }
   
-  if (is.null(first_guess)) {
+  if (is.null(first_guess) | first_guess == prior) {
     break
   }
+  prior <- first_guess
   print(first_guess)
 }
