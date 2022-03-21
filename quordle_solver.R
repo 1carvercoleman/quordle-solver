@@ -57,30 +57,6 @@ solver <- function(mydata) {
   return(entropy)
 }
 
-solver_first <- function(mydata, results, guesses) {
-  entropies <- c()
-  for (k in 1:4) { # Which guess
-    if (results[k] == "ggggg") {
-      entropies[k] <- 1000000
-      next
-    }
-    entropy <- 0
-    guess_test <- guesses[k]
-    for (i in 1:4) { # Which dataset
-      if (results[i] == "ggggg") {
-        next
-      }
-      for (j in 1:nrow(mydata[[i]])) {
-        answer_test <- mydata[[i]][j,1]
-        data_test <- subset_data(guess_test, get_result(guess_test, answer_test), mydata[[i]])
-        entropy <- entropy + nrow(data_test)
-      }
-    }
-    entropies[k] <- entropy
-  }
-  return(guesses[which.min(entropies)])
-}
-
 solver_second <- function(mydata, results, guesses) {
   entropies <- c()
   for (k in 1:length(guesses)) { # Which guess
