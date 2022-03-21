@@ -81,20 +81,9 @@ solver_first <- function(mydata, results, guesses) {
   return(guesses[which.min(entropies)])
 }
 
-solver_second <- function(mydata, results) {
+solver_second <- function(mydata, results, guesses) {
   entropies <- c()
-  
-  guesses <- unique(c(mydata[[1]][,1],
-                      mydata[[2]][,1],
-                      mydata[[3]][,1],
-                      mydata[[4]][,1]))
-  
-  
   for (k in 1:length(guesses)) { # Which guess
-    #if (results[k] == "ggggg") {
-      #entropies[k] <- 1000000
-      #next
-    #}
     entropy <- 0
     guess_test <- guesses[k]
     for (i in 1:4) { # Which dataset
@@ -208,9 +197,14 @@ while(TRUE) {
   
   if (!is_answer) {
     if (first_guess == "share") {
-      first_guess <- solver_first(words, result, possible_guesses)
+      possible_guesses <- unique(possible_guesses)
+      first_guess <- solver_second(words, result, possible_guesses)
     } else {
-      first_guess <- solver_second(words, result)
+      possible_guesses <- unique(c(words[[1]][,1],
+                                   words[[2]][,1],
+                                   words[[3]][,1],
+                                   words[[4]][,1]))
+      first_guess <- solver_second(words, result, possible_guesses)
     }
   }
   
